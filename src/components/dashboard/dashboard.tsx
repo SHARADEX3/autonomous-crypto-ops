@@ -1,7 +1,7 @@
 "use client"
 
 // Autonomous Crypto Ops — mission control (single / route).
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -21,12 +21,14 @@ import { EarningsPanel } from "./earnings-panel"
 import { OpportunitiesPanel } from "./opportunities-panel"
 import { MissionLog } from "./mission-log"
 import { StrategyPanel } from "./strategy-panel"
+import { BountiesPanel } from "./bounties-panel"
 import { StatCard, fmtUsd, timeAgo, useApi } from "./bits"
 import type {
   AgentPayload,
   EarningsPayload,
   WalletsPayload,
 } from "@/lib/types"
+import type { BountiesPayload } from "@/lib/bounties"
 
 interface RefreshPayload {
   ok?: number
@@ -38,6 +40,9 @@ interface RefreshPayload {
 export default function Dashboard() {
   const { theme, setTheme } = useTheme()
   const [scanning, setScanning] = useState(false)
+  // Hydration guard: next-themes resolves the theme on the client only.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   const wallets = useApi<WalletsPayload>("/api/wallets", 120_000)
   const earnings = useApi<EarningsPayload>("/api/earnings", 120_000)
@@ -45,10 +50,12 @@ export default function Dashboard() {
   const opportunities = useApi<{ opportunities: { status: string; autonomous: boolean }[] }>(
     "/api/opportunities",
   )
+  const bounties = useApi<BountiesPayload>("/api/bounties", 300_000)
 
   const oppList = opportunities.data?.opportunities ?? []
   const activeLanes = oppList.filter((o) => o.autonomous && ["active", "researching", "new"].includes(o.status)).length
   const totalOpportunities = oppList.length
+  const eventCount = earnings.data?.events?.length ?? 0
 
   const lastRun = agent.data?.lastRunAt ?? null
   const lastRunAgeMs = lastRun ? Date.now() - new Date(lastRun).getTime() : null
@@ -132,7 +139,7 @@ export default function Dashboard() {
               aria-label="Toggle theme"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {mounted && theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
         </div>
@@ -146,7 +153,7 @@ export default function Dashboard() {
             value={wallets.data ? fmtUsd(wallets.data.totalUsd) : "…"}
             sub={
               wallets.data
-                ? `live · ${wallets.data.wallets.length} chains · prices refresh 10 min`
+                ? `live · ${wallets.data.wallets?.length ?? 0} chains · prices refresh 10 min`
                 : "fetching live balances"
             }
             loading={wallets.loading}
@@ -157,7 +164,7 @@ export default function Dashboard() {
             value={earnings.data ? fmtUsd(earnings.data.totalUsd) : "…"}
             sub={
               earnings.data
-                ? `${earnings.data.events.length} event${earnings.data.events.length === 1 ? "" : "s"} logged`
+                ? `${eventCount} event${eventCount === 1 ? "" : "s"} logged`
                 : "loading income log"
             }
             loading={earnings.loading}
@@ -177,7 +184,7 @@ export default function Dashboard() {
           <StatCard
             icon={Activity}
             label="Agent cycles"
-            value={agent.data ? String(agent.data.totalRuns) : "…"}
+            value={agent.data ? String(agent.data.totalRuns ?? 0) : "…"}
             sub={
               agent.data?.lastRunAt
                 ? `last wake-up ${timeAgo(agent.data.lastRunAt)}`
@@ -192,6 +199,14 @@ export default function Dashboard() {
             <TabsList className="h-auto w-max min-w-full justify-start gap-1 bg-muted/50 p-1">
               <TabsTrigger value="overview" className="px-4 py-1.5 text-xs sm:text-sm">
                 Overview
+              </TabsTrigger>
+              <TabsTrigger value="bounties" className="gap-1.5 px-4 py-1.5 text-xs sm:text-sm">
+                Bounties
+                {(bounties.data?.bounties?.length ?? 0) > 0 && (
+                  <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[10px] text-emerald-400">
+                    {bounties.data?.bounties?.length ?? 0}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="earnings" className="px-4 py-1.5 text-xs sm:text-sm">
                 Earnings
@@ -214,6 +229,14 @@ export default function Dashboard() {
               earningsData={earnings.data}
               repoUrl={agent.data?.repoUrl ?? null}
               totalRuns={agent.data?.totalRuns ?? 0}
+            />
+          </TabsContent>
+
+          <TabsContent value="bounties" className="mt-0">
+            <BountiesPanel
+              data={bounties.data}
+              loading={bounties.loading}
+              refresh={bounties.refresh}
             />
           </TabsContent>
 

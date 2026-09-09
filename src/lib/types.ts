@@ -12,6 +12,7 @@ export interface WalletStatus {
   prevBalance: number | null
   change: number | null
   lastScanAt: string | null
+  history: { t: string; v: number }[]
   ok: boolean
   error?: string
 }

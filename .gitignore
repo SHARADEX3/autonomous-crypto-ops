@@ -60,3 +60,4 @@ server.log
 /bun.lock
 .zscripts/dev.pid
 .repo-url
+.agent-credentials.json

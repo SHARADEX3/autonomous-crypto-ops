@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     "mission control",
   ],
   authors: [{ name: "Autonomous Crypto Ops Agent" }],
+  icons: {
+    icon: "/logo.svg",
+  },
 }
 
 export default function RootLayout({

@@ -32,6 +32,41 @@ import type { EarningsPayload, WalletStatus, WalletsPayload } from "@/lib/types"
 import type { LucideIcon } from "lucide-react"
 import { Radar, Rocket, Megaphone, HandCoins as TipsIcon } from "lucide-react"
 
+// Minimal inline sparkline (last N balance snapshots, oldest → newest).
+function Sparkline({ points, className }: { points: { t: string; v: number }[]; className?: string }) {
+  if (points.length < 2) return null
+  const values = points.map((p) => p.v)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const w = 100
+  const h = 24
+  const step = w / (values.length - 1)
+  const coords = values.map((v, i) => `${(i * step).toFixed(2)},${(h - ((v - min) / range) * (h - 4) - 2).toFixed(2)}`)
+  const rising = values[values.length - 1] >= values[0]
+  const area = `M0,${h} L${coords.join(" L")} L${w},${h} Z`
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      className={`h-6 w-full ${className ?? ""}`}
+      role="img"
+      aria-label={`Balance history, ${points.length} scans, trend ${rising ? "flat/up" : "down"}`}
+    >
+      <path d={area} fill={rising ? "#34d39918" : "#f8717114"} />
+      <polyline
+        points={coords.join(" ")}
+        fill="none"
+        stroke={rising ? "#34d399" : "#f87171"}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  )
+}
+
 function WalletCard({ w }: { w: WalletStatus }) {
   const change = w.change
   return (
@@ -87,6 +122,12 @@ function WalletCard({ w }: { w: WalletStatus }) {
           {w.usdValue !== null ? fmtUsd(w.usdValue) : "—"}
           {w.balance === 0 && w.ok && " · empty wallet"}
         </div>
+
+        {w.history.length > 1 && (
+          <div className="mt-2" aria-label="Balance history sparkline">
+            <Sparkline points={w.history} />
+          </div>
+        )}
 
         <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
           <TooltipProvider>
@@ -154,7 +195,7 @@ export function Overview({
   repoUrl: string | null
   totalRuns: number
 }) {
-  const recent = earningsData?.events.slice(0, 6) ?? []
+  const recent = earningsData?.events?.slice(0, 6) ?? []
 
   const phases: { icon: LucideIcon; label: string; value: number; hint: string }[] = [
     {
@@ -192,7 +233,7 @@ export function Overview({
     <div className="space-y-6">
       <section aria-label="Monitored wallets" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {walletsData
-          ? walletsData.wallets.map((w) => <WalletCard key={w.chain} w={w} />)
+          ? (walletsData.wallets ?? []).map((w) => <WalletCard key={w.chain} w={w} />)
           : Array.from({ length: 5 }).map((_, i) => (
               <Card key={i}>
                 <CardContent className="p-5">

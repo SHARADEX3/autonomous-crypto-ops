@@ -24,6 +24,16 @@ export function useApi<T>(url: string, intervalMs?: number) {
       const res = await fetch(url, { cache: "no-store" })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = (await res.json()) as T
+      // Treat {error: "..."}-only payloads as failures so the UI never
+      // renders error-shaped data as if it were a valid payload.
+      if (
+        json &&
+        typeof json === "object" &&
+        "error" in json &&
+        Object.keys(json as object).length === 1
+      ) {
+        throw new Error(String((json as { error: unknown }).error))
+      }
       if (mounted.current) {
         setData(json)
         setError(null)

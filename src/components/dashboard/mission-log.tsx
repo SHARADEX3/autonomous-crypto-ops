@@ -45,7 +45,7 @@ export function MissionLog({
               Agent cycles
             </CardTitle>
             <CardDescription>
-              {data ? `${data.totalRuns} total runs` : "Loading…"}
+              {data ? `${data.totalRuns ?? 0} total runs` : "Loading…"}
             </CardDescription>
           </div>
         </CardHeader>

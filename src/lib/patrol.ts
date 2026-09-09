@@ -94,7 +94,7 @@ export async function runPatrol(): Promise<PatrolSummary> {
 /** Read-only status: live balances + latest two snapshots for the UI. */
 export async function getWalletStatus(): Promise<WalletsPayload> {
   const wallets = await db.wallet.findMany({
-    include: { snapshots: { orderBy: { createdAt: "desc" }, take: 2 } },
+    include: { snapshots: { orderBy: { createdAt: "desc" }, take: 30 } },
     orderBy: { chain: "asc" },
   })
   const prices = await fetchPrices()
@@ -110,6 +110,9 @@ export async function getWalletStatus(): Promise<WalletsPayload> {
       if (usdValue !== null) totalUsd += usdValue
       const latest = w.snapshots[0]
       const previous = w.snapshots[1] ?? null
+      const history = [...w.snapshots]
+        .reverse()
+        .map((s) => ({ t: s.createdAt.toISOString(), v: s.balance }))
       return {
         chain: w.chain,
         name: info?.name ?? w.chain,
@@ -123,6 +126,7 @@ export async function getWalletStatus(): Promise<WalletsPayload> {
         change:
           latest && previous ? latest.balance - previous.balance : null,
         lastScanAt: latest?.createdAt?.toISOString() ?? null,
+        history,
         ok: live?.ok ?? false,
         error: live?.error,
       }

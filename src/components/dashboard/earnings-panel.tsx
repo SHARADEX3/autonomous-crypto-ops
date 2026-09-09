@@ -221,7 +221,7 @@ export function EarningsPanel({
           </Dialog>
         </CardHeader>
         <CardContent>
-          {(data?.events.length ?? 0) === 0 && !loading ? (
+          {(data?.events?.length ?? 0) === 0 && !loading ? (
             <EmptyState
               icon={HandCoins}
               title="No income events yet"

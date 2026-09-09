@@ -69,3 +69,14 @@ model AgentRun {
 
   @@index([createdAt])
 }
+
+// Platform credentials for the agent (apiKey stays in gitignored DB only)
+model AgentCredential {
+  id        String   @id @default(cuid())
+  platform  String   @unique // e.g. superteam-earn
+  agentId   String
+  username  String?
+  apiKey    String
+  claimCode String?
+  createdAt DateTime @default(now())
+}
