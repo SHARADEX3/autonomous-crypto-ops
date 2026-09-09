@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Monitored receiving wallets (public addresses only — never private keys)
+model Wallet {
+  id        String     @id @default(cuid())
+  chain     String     @unique
+  label     String
+  address   String
+  createdAt DateTime   @default(now())
+  snapshots Snapshot[]
+}
+
+// Point-in-time balance scan of a wallet
+model Snapshot {
+  id        String   @id @default(cuid())
+  walletId  String
+  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  balance   Float
+  usdValue  Float?
+  createdAt DateTime @default(now())
+
+  @@index([walletId, createdAt])
+}
+
+// Detected income event (auto-detected balance increase or manual log)
+model EarningEvent {
+  id         String   @id @default(cuid())
+  chain      String
+  symbol     String
+  amount     Float
+  usdValue   Float?
+  note       String?
+  source     String   @default("auto") // auto | manual
+  detectedAt DateTime @default(now())
+
+  @@index([detectedAt])
+}
+
+// Curated zero-capital earning opportunity board
+model Opportunity {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   @default("dev") // faucet | learn | bounty | airdrop | funding | dev | content
+  url         String
+  description String   @default("")
+  effort      String   @default("medium") // low | medium | high
+  payout      String   @default("unknown") // zero | dust | small | variable | unknown
+  autonomous  Boolean  @default(false) // can the agent pursue it with no accounts/keys/CAPTCHA?
+  status      String   @default("new") // new | researching | active | earning | dead
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// One record per autonomous agent work cycle (cron loop heartbeat)
+model AgentRun {
+  id        String   @id @default(cuid())
+  task      String   @default("manual") // webDevReview-15m | daily-patrol | manual
+  status    String   @default("ok") // ok | error
+  summary   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
