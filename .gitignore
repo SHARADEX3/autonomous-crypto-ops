@@ -59,3 +59,4 @@ server.log
 /download/
 /bun.lock
 .zscripts/dev.pid
+.repo-url
