@@ -58,3 +58,4 @@ server.log
 /.qa/
 /download/
 /bun.lock
+.zscripts/dev.pid
