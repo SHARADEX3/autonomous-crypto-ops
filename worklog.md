@@ -43,3 +43,23 @@ Stage Summary:
 - SECURITY: GitHub token never committed (scan verified), .env untracked, only public addresses stored. RECOMMEND user rotate the GitHub PAT after the experiment (it was pasted in chat).
 - RISK: external RPC rate limits (429s) are transient and self-healing via fallbacks + 15-min retries; realistic near-term income ≈ $0 — by design the UI says so honestly.
 - NEXT PHASE PRIORITY for loop agents: 1) Register agent on Superteam Earn API (POST /api/agents) and attempt first bounty submission; 2) add wallet detail charts (balance history from snapshots); 3) add earnings chart + export; 4) grow GitHub repo (actions, issues template); 5) research gigs.sh welcome-tier platforms for a second bounty lane.
+
+---
+Task ID: webDevReview-cycle-2 (15-min loop, first autonomous cycle)
+Agent: webDevReview loop agent (Z.ai Code)
+Task: Patrol + QA + advance the mission: Superteam Earn integration (registration + live bounty radar)
+
+Work Log:
+- Patrol: 5/5 chains OK, $0 detected, $0 portfolio. Mission context loaded from worklog.
+- QA probes of Superteam Earn: public listings API live; /agents docs page public (full official agent API spec extracted); site browsing is login-gated but irrelevant — the API is keyless.
+- **REGISTERED THE AGENT on Superteam Earn** (POST /api/agents): agentId 257f3eb4-…, username autonomous-crypto-ops-cyan-22, apiKey sk_…, claimCode (payout rail). Credentials stored in: (a) Prisma AgentCredential model + (b) gitignored .agent-credentials.json — file-based is the runtime source of truth because the running dev server's global PrismaClient predates the new model (models added at runtime need a server restart; file store needs none). LEARNED: prefer file-based config for hot schema additions.
+- Authenticated feed verified: 9 open agent-eligible listings ($26,600 pool, 3 AGENT_ONLY hidden from public). Details endpoint verified (rewards split, skills, eligibility questions).
+- Built: src/lib/bounties.ts (authed feed + public fallback + 5-min cache + stablecoin USD est), /api/bounties route, BountiesPanel tab (identity card w/ claim code + claim URL, stats, filters, sort, submission-pipeline explainer), wallet sparklines (snapshot history in /api/wallets), custom radar favicon.
+- Bugs found & fixed via agent-browser: (1) runtime TypeError — getBounties returned the cache WRAPPER {at,payload} instead of cache.payload (this was also the root cause of the crash that looked like a hydration error); (2) next-themes hydration mismatch on theme toggle icon (mounted guard); (3) usdEstimate returned price instead of reward×price ($9 → $26,600 pool fix); (4) hardened useApi to reject {error}-shaped payloads + guarded all nested data accesses.
+- QA: all 6 tabs render, agent-only filter (3 cards) works, no console/page errors, lint clean, screenshots in .qa/. Committed 921cc23 + pushed (secret scan clean: no token, no .env, no sk_ in tree).
+
+Stage Summary:
+- MILESTONE: the mission now has a LIVE earning rail — registered agent identity + authenticated bounty radar ($26.6k pool visible, incl. 3 agent-only listings). The user's single manual step (claim code redemption UI) is exposed in the Bounties tab.
+- STATE: 5-chain patrol healthy; GitHub repo updated; 15-min + daily loops active.
+- NEXT CYCLE PRIORITIES: 1) evaluate the 3 AGENT_ONLY bounties for a skill match and fetch details for the best candidate (audit/narrative-tool/LMS dApp); 2) begin building a real deliverable for one bounty (e.g. vulnerability-audit tooling or content research pipeline); 3) only submit when the deliverable is genuinely competitive (spam submissions get suspended); 4) consider heartbeat.md protocol (status pings) if API requires activity; 5) keep growing snapshot history for sparklines.
+- RISK: submission quality bar is real (low-quality AI submissions get suspended — per skill.md best practices). Do NOT submit half-baked work. Listing 'deadline' fields are stale on the platform (dates in the past but status OPEN) — treat status as truth.
