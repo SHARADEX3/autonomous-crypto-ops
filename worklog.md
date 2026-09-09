@@ -19,3 +19,27 @@ Stage Summary:
 - Compounding paths for later: Optimism Retro Funding, Gitcoin GG rounds, Filecoin RetroPGF reward published public-goods work retroactively — worth building track record toward.
 - ToS/ethics: faucet botting, CAPTCHA bypass, multi-account/Sybil farming explicitly marked "not pursued".
 - Recommended next actions (for implementer agents): register with Superteam Earn Agent API (status: active), use gigs.sh as lead list (active), pilot 1-2 agent marketplaces (new), build publishable artifacts with tip rails (Paragraph/Dune/Stacker), avoid faucets/airdrops/learn-and-earn entirely.
+
+---
+Task ID: 1-b (main session, includes Tasks 0-6)
+Agent: main-session orchestrator (Z.ai Code)
+Task: Build the Autonomous Crypto Ops mission — hub app, wallet patrol, opportunity board, GitHub publish, autonomous scheduling
+
+Work Log:
+- Environment recon: Next.js 16 + TS + Tailwind 4 + shadcn + Prisma/SQLite scaffold confirmed; dev server live on 3000; full shadcn/ui set available.
+- Task 1-a delegated to research subagent (20 web searches + primary-source verification): found the agent-native earning economy — Superteam Earn Agent API (primary lane), gigs.sh registry, retro-funding programs; hard-blocked lanes (faucets/learn-earn/airdrops) documented with reasons.
+- Prisma schema: Wallet, Snapshot, EarningEvent, Opportunity, AgentRun. Pushed + seeded 5 user wallets (BTC/ETH/RON/SOL/TRX public addresses) and 18 researched opportunities.
+- Built keyless server-side chain adapters: mempool.space→blockstream (BTC), llamarpc→cloudflare (ETH), roninchain RPC (RON), Solana public RPC, TronGrid→tronscan (TRX); USD pricing via Coinbase spot (CoinGecko fallback, 10-min cache) — Binance IP-banned, CoinGecko rate-limited from this sandbox.
+- API routes: /api/wallets (live status), /api/wallets/refresh (patrol: snapshot + income delta detection), /api/earnings (+manual log), /api/opportunities (+[id] PATCH/DELETE), /api/agent (runs + worklog tail + repoUrl), /api/agent/patrol (one-shot patrol + heartbeat for cron agents).
+- Mission-control UI (single / route): dark-first emerald theme, KPI stats row, 5 tabs (Overview w/ wallet grid + mission phases, Earnings w/ manual log dialog, Opportunities board w/ filters + status workflow, Mission Log w/ live worklog viewer + agent timeline, Strategy w/ honest math + ethics rails + QR donation rail). Sticky footer (min-h-screen flex + mt-auto), mobile-safe-area, custom scrollbars, mission-grid texture.
+- QA via agent-browser: all tabs render, Scan-now patrol works, opportunity status change persists, dialogs validate, zero console/page errors, no horizontal overflow at 390px, footer sticks when content fits & pushes when it doesn't. Screenshots in .qa/.
+- GitHub publish: repo created + pushed (token used ONLY via env in push URL; secret scan clean — no token, .env untracked and removed from history-tracking). Live: https://github.com/SHARADEX3/autonomous-crypto-ops (README doubles as tip rail). Local marker .repo-url written (gitignored) so the UI shows the published-asset phase.
+- Scheduling: cron job 371953 "web-dev-review-15m" (fixed_rate 900s, webDevReview kind — runs patrol, QA, dev loop each cycle) + cron job 371954 "daily-earnings-patrol" (daily 09:00 Asia/Kolkata, agentTurn — earnings strategy + lane advancement).
+- Lint: clean. Baseline patrol recorded (5 chains, 4 ok — BTC 429 transient, fallback added).
+
+Stage Summary:
+- RESULT: mission-control hub fully operational at / on port 3000; 5 chains monitored with auto income detection; 18-lane researched opportunity board; published GitHub asset live; TWO autonomous wake-up loops active (15-min + daily). User's "continue working" messages add a third manual trigger.
+- KEY DECISION: honest economics over hype — no faucet botting/Sybil/CAPTCHA bypass (ToS/ethics); primary revenue attempt = Superteam Earn Agent API bounties (USDC to public SOL address, claim-code needs one user click); compounding = published assets + tip rails + retro-funding eligibility.
+- SECURITY: GitHub token never committed (scan verified), .env untracked, only public addresses stored. RECOMMEND user rotate the GitHub PAT after the experiment (it was pasted in chat).
+- RISK: external RPC rate limits (429s) are transient and self-healing via fallbacks + 15-min retries; realistic near-term income ≈ $0 — by design the UI says so honestly.
+- NEXT PHASE PRIORITY for loop agents: 1) Register agent on Superteam Earn API (POST /api/agents) and attempt first bounty submission; 2) add wallet detail charts (balance history from snapshots); 3) add earnings chart + export; 4) grow GitHub repo (actions, issues template); 5) research gigs.sh welcome-tier platforms for a second bounty lane.
