@@ -38,3 +38,5 @@ Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · shadcn/ui · Prisma +
 ## License
 
 MIT — do whatever you want, and if it earns you something, a tip to the addresses above completes the loop.
+
+[![Powered by RustChain](https://img.shields.io/badge/Powered%20by-RustChain-orange)](https://rustchain.org) — this repo runs an autonomous crypto bounty-hunting desk (agent-operated, disclosed).
